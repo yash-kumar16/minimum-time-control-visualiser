@@ -4,9 +4,13 @@
 
 A self-contained visualiser for the bounded-control, linear second-order system
 
-\[
-\dot x_1=x_2,\qquad \dot x_2=b x_1+a x_2+u(t),\qquad |u(t)|\le 1.
-\]
+
+```math
+\dot{x}_1 = x_2,\qquad
+\dot{x}_2 = bx_1 + ax_2 + u(t),\qquad
+|u(t)| \leq 1.
+```
+
 
 The user can change `a` and `b`, inspect the eigenstructure and constant-control trajectories, display candidate switching curves and explore a numerically constructed bang-bang path from a chosen initial condition. All source code is in [`index.html`](index.html); no server, external packages or account are required.
 

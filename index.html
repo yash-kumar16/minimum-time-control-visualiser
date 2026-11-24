@@ -1,0 +1,1007 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Minimum-Time Optimal Control — Interactive Lab</title>
+<style>
+  * { box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    background: #f5f4ef;
+    color: #2c2c2a;
+    margin: 0;
+    padding: 20px;
+    line-height: 1.5;
+  }
+  .container {
+    max-width: 1100px;
+    margin: 0 auto;
+    background: #fff;
+    border-radius: 12px;
+    padding: 24px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+  }
+  h1 {
+    font-size: 22px;
+    font-weight: 500;
+    margin: 0 0 4px;
+  }
+  .subtitle {
+    font-size: 14px;
+    color: #5f5e5a;
+    margin: 0 0 20px;
+  }
+  .main {
+    display: grid;
+    grid-template-columns: 1fr 320px;
+    gap: 20px;
+  }
+  @media (max-width: 900px) {
+    .main { grid-template-columns: 1fr; }
+  }
+  .sidebar {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+  .panel {
+    background: #fafaf7;
+    border-radius: 10px;
+    padding: 14px 16px;
+    border: 1px solid rgba(0,0,0,0.06);
+  }
+  .panel-title {
+    font-size: 11px;
+    font-weight: 600;
+    color: #5f5e5a;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin: 0 0 8px;
+  }
+  .input-row {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    margin-bottom: 8px;
+  }
+  .input-row label {
+    font-weight: 500;
+    font-size: 14px;
+    min-width: 20px;
+  }
+  .input-row input[type=number] {
+    flex: 1;
+    padding: 6px 8px;
+    border: 1px solid rgba(0,0,0,0.15);
+    border-radius: 6px;
+    font-family: "SF Mono", "Menlo", monospace;
+    font-size: 14px;
+    background: #fff;
+  }
+  .equation {
+    font-family: "SF Mono", "Menlo", monospace;
+    font-size: 13px;
+    padding: 8px 10px;
+    background: #fff;
+    border-radius: 6px;
+    border: 1px solid rgba(0,0,0,0.06);
+  }
+  .presets {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    margin-top: 8px;
+  }
+  .preset-btn {
+    padding: 5px 9px;
+    font-size: 11px;
+    border: 1px solid rgba(0,0,0,0.15);
+    border-radius: 6px;
+    background: #fff;
+    color: #2c2c2a;
+    cursor: pointer;
+    font-family: inherit;
+    transition: all 0.15s;
+  }
+  .preset-btn:hover {
+    background: #f1efe8;
+  }
+  .preset-btn.active {
+    background: #2c2c2a;
+    color: #fff;
+    border-color: #2c2c2a;
+  }
+  .info-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+  .info-item {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+  .info-label {
+    font-size: 10px;
+    color: #888780;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    font-weight: 600;
+  }
+  .info-value {
+    font-family: "SF Mono", "Menlo", monospace;
+    font-size: 13px;
+    color: #2c2c2a;
+  }
+  .badge {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 500;
+    font-family: inherit;
+  }
+  .badge-stable { background: rgba(29,158,117,0.15); color: #0F6E56; }
+  .badge-unstable { background: rgba(216,90,48,0.15); color: #993C1D; }
+  .badge-saddle { background: rgba(127,119,221,0.15); color: #3C3489; }
+  .badge-focus-stable { background: rgba(55,138,221,0.15); color: #0C447C; }
+  .badge-focus-unstable { background: rgba(239,159,39,0.15); color: #854F0B; }
+  .badge-centre { background: rgba(157,74,172,0.15); color: #6A2B7A; }
+  .badge-error { background: rgba(226,75,74,0.15); color: #791F1F; }
+  .toggles {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    font-size: 13px;
+  }
+  .toggles label {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    cursor: pointer;
+  }
+  .canvas-wrap {
+    position: relative;
+    background: #fafaf7;
+    border-radius: 10px;
+    padding: 10px;
+    border: 1px solid rgba(0,0,0,0.06);
+  }
+  canvas {
+    width: 100%;
+    display: block;
+    cursor: crosshair;
+    border-radius: 6px;
+    background: #fff;
+  }
+  .hint {
+    font-size: 11px;
+    color: #888780;
+    margin-top: 8px;
+    text-align: center;
+  }
+  .legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 10px;
+    font-size: 11px;
+    color: #5f5e5a;
+    padding: 0 4px;
+  }
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+  }
+  .swatch { width: 18px; height: 3px; border-radius: 1px; }
+  .swatch-dot { width: 8px; height: 8px; border-radius: 50%; }
+  .section-title {
+    font-size: 12px;
+    font-weight: 600;
+    color: #5f5e5a;
+    margin: 0 0 6px;
+  }
+  .formula {
+    font-family: "SF Mono", "Menlo", monospace;
+    font-size: 12px;
+    color: #3d3d3a;
+    padding: 6px 8px;
+    background: #fff;
+    border-radius: 4px;
+    margin-top: 6px;
+    border: 1px solid rgba(0,0,0,0.06);
+  }
+  .notes {
+    margin-top: 16px;
+    padding: 14px 16px;
+    background: #fafaf7;
+    border-radius: 10px;
+    border: 1px solid rgba(0,0,0,0.06);
+    font-size: 13px;
+    line-height: 1.6;
+  }
+  .notes h3 {
+    margin: 0 0 6px;
+    font-size: 13px;
+    font-weight: 600;
+  }
+  .notes p { margin: 4px 0; color: #5f5e5a; }
+  .clear-btn {
+    margin-top: 6px;
+    padding: 4px 10px;
+    font-size: 11px;
+    border: 1px solid rgba(0,0,0,0.15);
+    border-radius: 6px;
+    background: #fff;
+    cursor: pointer;
+  }
+  @media (prefers-color-scheme: dark) {
+    body { background: #1a1a1a; color: #c2c0b6; }
+    .container { background: #252525; box-shadow: 0 1px 3px rgba(0,0,0,0.3); }
+    .panel, .canvas-wrap, .notes { background: #1f1f1f; border-color: rgba(255,255,255,0.08); }
+    .equation, .info-value, .formula, .preset-btn, .input-row input { background: #2a2a2a; color: #c2c0b6; border-color: rgba(255,255,255,0.1); }
+    .preset-btn.active { background: #c2c0b6; color: #1a1a1a; border-color: #c2c0b6; }
+    .preset-btn:hover { background: #333; }
+    canvas { background: #252525; }
+    .subtitle, .info-label, .hint, .legend, .notes p { color: #888780; }
+  }
+</style>
+</head>
+<body>
+<div class="container">
+  <h1>Minimum-time optimal control visualiser</h1>
+  <p class="subtitle">
+    System: ẍ = a·ẋ + b·x + u, with |u| ≤ 1. Explore bang-bang control, switching curves, and controllable regions for any linear second-order system.
+  </p>
+
+  <p class="subtitle" style="margin-top:-8px; margin-bottom:12px; color:#955b20;">Educational exploratory tool: trajectory matching is approximate and does not certify global time optimality. See README for mathematical limitations.</p>
+
+  <div class="main">
+    <div>
+      <div class="canvas-wrap">
+        <canvas id="pp" width="780" height="580"></canvas>
+      </div>
+      <p class="hint">Click a point to explore a candidate bang-bang trajectory found by a numerical curve-intersection heuristic.</p>
+      <div class="legend">
+        <div class="legend-item"><div class="swatch-dot" style="background:#E24B4A"></div>Rest point u=+1</div>
+        <div class="legend-item"><div class="swatch-dot" style="background:#378ADD"></div>Rest point u=−1</div>
+        <div class="legend-item"><div class="swatch" style="background:#E24B4A"></div>u=+1 trajectories</div>
+        <div class="legend-item"><div class="swatch" style="background:#378ADD"></div>u=−1 trajectories</div>
+        <div class="legend-item"><div class="swatch" style="background:#1D9E75; height:4px"></div>Switching curve</div>
+        <div class="legend-item"><div class="swatch" style="background:#7F77DD; height:4px"></div>Optimal path from click</div>
+      </div>
+    </div>
+
+    <div class="sidebar">
+      <div class="panel">
+        <div class="panel-title">System parameters</div>
+        <div class="input-row">
+          <label>a =</label>
+          <input type="number" id="inA" value="5" step="0.5">
+        </div>
+        <div class="input-row">
+          <label>b =</label>
+          <input type="number" id="inB" value="-6" step="0.5">
+        </div>
+        <div class="equation">ẍ = <span id="eqA">5</span>·ẋ + <span id="eqB">−6</span>·x + u</div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-title">Presets (past exam questions)</div>
+        <div class="presets">
+          <button class="preset-btn" onclick="loadPreset(-3, -2, this)">Lecture 13</button>
+          <button class="preset-btn active" onclick="loadPreset(5, -6, this)">2025</button>
+          <button class="preset-btn" onclick="loadPreset(-1, 6, this)">2022</button>
+          <button class="preset-btn" onclick="loadPreset(-5, -4, this)">2018 ST</button>
+          <button class="preset-btn" onclick="loadPreset(4, 5, this)">2019</button>
+          <button class="preset-btn" onclick="loadPreset(-5, -6, this)">2020</button>
+          <button class="preset-btn" onclick="loadPreset(-2, 8, this)">2024</button>
+          <button class="preset-btn" onclick="loadPreset(4, -3, this)">2014</button>
+        </div>
+        <div class="panel-title" style="margin-top:10px">Complex cases (spirals)</div>
+        <div class="presets">
+          <button class="preset-btn" onclick="loadPreset(-1, -2, this)">Stable focus</button>
+          <button class="preset-btn" onclick="loadPreset(1, -2, this)">Unstable focus</button>
+          <button class="preset-btn" onclick="loadPreset(0, -4, this)">Centre</button>
+          <button class="preset-btn" onclick="loadPreset(-0.5, -5, this)">Slow stable focus</button>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-title">Classification</div>
+        <div class="info-grid" id="infoPanel"></div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-title">Display options</div>
+        <div class="toggles">
+          <label><input type="checkbox" id="tEig" checked onchange="draw()"> Eigenvector lines</label>
+          <label><input type="checkbox" id="tTraj" checked onchange="draw()"> Trajectory families</label>
+          <label><input type="checkbox" id="tSwitch" checked onchange="draw()"> Switching curve</label>
+          <label><input type="checkbox" id="tRegion" checked onchange="draw()"> Controllable region</label>
+          <label><input type="checkbox" id="tArrows" checked onchange="draw()"> Arrows</label>
+          <label><input type="checkbox" id="tLabels" checked onchange="draw()"> Labels</label>
+        </div>
+        <button class="clear-btn" onclick="clicked=null; draw();">Clear click point</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="notes">
+    <h3>How to use this tool</h3>
+    <p><strong>1. Choose a system.</strong> Either pick a preset (past exam question) or type your own a, b values.</p>
+    <p><strong>2. Read the classification.</strong> The panel shows eigenvalues, rest points, and the type of singular point. When a² + 4b &gt; 0 you get nodes or saddles (real eigenvalues); when a² + 4b &lt; 0 you get spirals or centres (complex eigenvalues).</p>
+    <p><strong>3. Understand the phase plane.</strong> Red trajectories orbit the u=+1 rest point, blue trajectories orbit the u=−1 rest point. For real eigenvalues these are parabolas (nodes) or hyperbolas (saddles); for complex eigenvalues they are spirals (focus) or ellipses (centre). The green curve is the switching curve. Shaded green area is the controllable region.</p>
+    <p><strong>4. Click to simulate.</strong> Click a phase-plane point to explore a candidate bang-bang path towards the origin. Curve matching is approximate; the resulting path is not a certified minimum-time solution. The solid purple arc is a constant-control segment and the dashed segment follows an approximate backward-flow curve. The two may not join exactly.</p>
+    <p><strong>5. Toggle elements.</strong> Use checkboxes to show/hide different parts of the diagram — useful for building up the sketch step by step in class.</p>
+  </div>
+</div>
+
+<script>
+const canvas = document.getElementById('pp');
+const ctx = canvas.getContext('2d');
+let W = 780, H = 580;
+
+function setupCanvas() {
+  const rect = canvas.getBoundingClientRect();
+  const dpr = window.devicePixelRatio || 1;
+  canvas.width = rect.width * dpr;
+  canvas.height = rect.height * dpr;
+  W = rect.width;
+  H = rect.height;
+  ctx.setTransform(1, 0, 0, 1, 0, 0);
+  ctx.scale(dpr, dpr);
+}
+
+const dark = matchMedia('(prefers-color-scheme: dark)').matches;
+const textCol = dark ? '#c2c0b6' : '#3d3d3a';
+const mutedCol = '#888780';
+const gridCol = dark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)';
+const axisCol = dark ? 'rgba(255,255,255,0.35)' : 'rgba(0,0,0,0.3)';
+const eigCol = dark ? 'rgba(255,255,255,0.35)' : 'rgba(0,0,0,0.3)';
+const redCol = '#E24B4A';
+const blueCol = '#378ADD';
+const greenCol = '#1D9E75';
+const purpleCol = '#7F77DD';
+
+let system = null;
+let clicked = null;
+
+function fmt(x, d) {
+  if (!isFinite(x)) return '—';
+  d = d || 3;
+  return (Math.round(x * Math.pow(10, d)) / Math.pow(10, d)).toString();
+}
+
+function computeSystem(a, b) {
+  if (Math.abs(b) < 0.001) return { error: 'b must be nonzero (no rest point exists).' };
+  const disc = a*a + 4*b;
+  const rest_plus = -1/b;
+  const rest_minus = 1/b;
+
+  if (disc > 0.01) {
+    // Real distinct eigenvalues (nodes and saddles)
+    const sq = Math.sqrt(disc);
+    const l1 = (a - sq) / 2;
+    const l2 = (a + sq) / 2;
+    const denom = b * (l1 - l2);
+    const K_plus = -l2 / denom;
+    const L_plus = l1 / denom;
+    const K_minus = -K_plus;
+    const L_minus = -L_plus;
+    let type, typeKey, controllability;
+    if (l1 < 0 && l2 < 0) { type = 'Stable node'; typeKey = 'stable'; controllability = 'All of ℝ²'; }
+    else if (l1 > 0 && l2 > 0) { type = 'Unstable node'; typeKey = 'unstable'; controllability = 'Bounded region'; }
+    else { type = 'Saddle point'; typeKey = 'saddle'; controllability = 'Infinite strip'; }
+    const stable_l = l1 < 0 ? l1 : (l2 < 0 ? l2 : null);
+    const unstable_l = l1 > 0 ? l1 : (l2 > 0 ? l2 : null);
+    return { ok: true, complex: false, a, b, l1, l2, rest_plus, rest_minus, K_plus, L_plus, K_minus, L_minus, type, typeKey, controllability, stable_l, unstable_l };
+  } else if (disc < -0.01) {
+    // Complex eigenvalues: spirals (focus) or centres
+    const alpha = a / 2;                    // real part
+    const omega = Math.sqrt(-disc) / 2;     // imaginary part
+    let type, typeKey, controllability;
+    if (Math.abs(alpha) < 0.001) {
+      type = 'Centre'; typeKey = 'centre';
+      controllability = 'All of ℝ² (closed orbits)';
+    } else if (alpha < 0) {
+      type = 'Stable focus (spiral in)'; typeKey = 'focus-stable';
+      controllability = 'All of ℝ²';
+    } else {
+      type = 'Unstable focus (spiral out)'; typeKey = 'focus-unstable';
+      controllability = 'Bounded region';
+    }
+    return { ok: true, complex: true, a, b, alpha, omega, rest_plus, rest_minus, type, typeKey, controllability };
+  } else {
+    // Repeated eigenvalue: degenerate node
+    const l = a / 2;
+    let type, typeKey, controllability;
+    if (l < 0) { type = 'Degenerate stable node'; typeKey = 'stable'; controllability = 'All of ℝ²'; }
+    else if (l > 0) { type = 'Degenerate unstable node'; typeKey = 'unstable'; controllability = 'Bounded region'; }
+    else { type = 'Degenerate (λ = 0)'; typeKey = 'stable'; controllability = '—'; }
+    // Treat as a near-node with a tiny perturbation
+    const l1 = l - 0.001, l2 = l + 0.001;
+    const denom = b * (l1 - l2);
+    const K_plus = -l2 / denom;
+    const L_plus = l1 / denom;
+    return { ok: true, complex: false, degenerate: true, a, b, l1, l2, rest_plus, rest_minus, K_plus, L_plus, K_minus: -K_plus, L_minus: -L_plus, type, typeKey, controllability, stable_l: l < 0 ? l : null, unstable_l: l > 0 ? l : null };
+  }
+}
+
+function getView(sys) {
+  const r = Math.max(Math.abs(sys.rest_plus), Math.abs(sys.rest_minus));
+  const xExt = r * 4;
+  const aspect = (W - 100) / (H - 60);
+  const yExt = xExt / aspect * 1.3;
+  return { xmin: -xExt, xmax: xExt, ymin: -yExt, ymax: yExt };
+}
+
+function toS(x, y, vw) {
+  const mx = 50, my = 30;
+  return [mx + (x - vw.xmin) / (vw.xmax - vw.xmin) * (W - 2*mx),
+          my + (1 - (y - vw.ymin) / (vw.ymax - vw.ymin)) * (H - 2*my)];
+}
+
+function fromS(sx, sy, vw) {
+  const mx = 50, my = 30;
+  return [vw.xmin + (sx - mx) / (W - 2*mx) * (vw.xmax - vw.xmin),
+          vw.ymin + (1 - (sy - my) / (H - 2*my)) * (vw.ymax - vw.ymin)];
+}
+
+function trajKL(sys, u, K, L, tMin, tMax, dt) {
+  const rest = -u / sys.b;
+  const pts = [];
+  const maxA = 50;
+  for (let t = tMin; t <= tMax; t += dt) {
+    const e1 = Math.exp(sys.l1 * t);
+    const e2 = Math.exp(sys.l2 * t);
+    const y1 = K * e1 + L * e2;
+    const y2 = sys.l1 * K * e1 + sys.l2 * L * e2;
+    if (!isFinite(y1) || !isFinite(y2)) continue;
+    if (Math.abs(y1) > maxA || Math.abs(y2) > maxA) continue;
+    pts.push([y1 + rest, y2]);
+  }
+  return pts;
+}
+
+// For complex eigenvalues: y1(t) = e^(αt) (C1 cos ωt + C2 sin ωt)
+// y2(t) = dy1/dt = e^(αt) [(αC1 + ωC2) cos ωt + (αC2 - ωC1) sin ωt]
+function trajComplex(sys, u, C1, C2, tMin, tMax, dt) {
+  const rest = -u / sys.b;
+  const pts = [];
+  const maxA = 50;
+  const { alpha, omega } = sys;
+  for (let t = tMin; t <= tMax; t += dt) {
+    const eat = Math.exp(alpha * t);
+    if (!isFinite(eat) || eat > 1e8) continue;
+    const c = Math.cos(omega * t);
+    const s = Math.sin(omega * t);
+    const y1 = eat * (C1 * c + C2 * s);
+    const y2 = eat * ((alpha * C1 + omega * C2) * c + (alpha * C2 - omega * C1) * s);
+    if (!isFinite(y1) || !isFinite(y2)) continue;
+    if (Math.abs(y1) > maxA || Math.abs(y2) > maxA) continue;
+    pts.push([y1 + rest, y2]);
+  }
+  return pts;
+}
+
+// Given initial state (y1_0, y2_0), find C1, C2 for complex trajectory starting at t=0
+function fitComplex(sys, y1_0, y2_0) {
+  // y1(0) = C1
+  // y2(0) = α C1 + ω C2  ⟹  C2 = (y2_0 - α C1) / ω
+  const C1 = y1_0;
+  const C2 = (y2_0 - sys.alpha * C1) / sys.omega;
+  return { C1, C2 };
+}
+
+function switchCurve(sys, u, tMin) {
+  if (sys.complex) {
+    // For complex case: trajectory passes through origin at t=0
+    // In shifted coords y = x - rest, at t=0: y1 = -rest, y2 = 0
+    const rest = -u / sys.b;
+    const y1_0 = -rest;
+    const y2_0 = 0;
+    const { C1, C2 } = fitComplex(sys, y1_0, y2_0);
+    return trajComplex(sys, u, C1, C2, tMin, 0, 0.003);
+  }
+  const K = u > 0 ? sys.K_plus : sys.K_minus;
+  const L = u > 0 ? sys.L_plus : sys.L_minus;
+  return trajKL(sys, u, K, L, tMin, 0, 0.003);
+}
+
+function drawPath(pts, col, w, dash, vw) {
+  ctx.strokeStyle = col;
+  ctx.lineWidth = w;
+  ctx.setLineDash(dash || []);
+  ctx.beginPath();
+  let started = false;
+  for (const [x, y] of pts) {
+    const [sx, sy] = toS(x, y, vw);
+    if (sx < -50 || sx > W+50 || sy < -50 || sy > H+50) { started = false; continue; }
+    if (!started) { ctx.moveTo(sx, sy); started = true; }
+    else ctx.lineTo(sx, sy);
+  }
+  ctx.stroke();
+  ctx.setLineDash([]);
+}
+
+function drawArrow(pts, frac, col, vw) {
+  if (pts.length < 4) return;
+  const idx = Math.max(1, Math.floor(frac * (pts.length - 2)));
+  if (idx >= pts.length - 1) return;
+  const [x1, y1] = pts[idx - 1];
+  const [x2, y2] = pts[idx + 1];
+  const [sx1, sy1] = toS(x1, y1, vw);
+  const [sx2, sy2] = toS(x2, y2, vw);
+  const mx = (sx1+sx2)/2, my = (sy1+sy2)/2;
+  if (mx < 50 || mx > W-50 || my < 30 || my > H-30) return;
+  const a = Math.atan2(sy2 - sy1, sx2 - sx1);
+  const sz = 6;
+  ctx.fillStyle = col;
+  ctx.beginPath();
+  ctx.moveTo(mx + sz*Math.cos(a), my + sz*Math.sin(a));
+  ctx.lineTo(mx + sz*Math.cos(a+2.5), my + sz*Math.sin(a+2.5));
+  ctx.lineTo(mx + sz*Math.cos(a-2.5), my + sz*Math.sin(a-2.5));
+  ctx.fill();
+}
+
+function distToCurve(pt, curve) {
+  let min = Infinity, idx = -1;
+  for (let i = 0; i < curve.length; i++) {
+    const d2 = (pt[0]-curve[i][0])**2 + (pt[1]-curve[i][1])**2;
+    if (d2 < min) { min = d2; idx = i; }
+  }
+  return { dist: Math.sqrt(min), idx };
+}
+
+function simulateFromClick(sys, x1_0, x2_0, vw) {
+  const tMinSw = sys.complex ? -8 : -6;
+  const swP = switchCurve(sys, 1, tMinSw);
+  const swN = switchCurve(sys, -1, tMinSw);
+  function tryU(u) {
+    const rest = -u / sys.b;
+    const y1_0 = x1_0 - rest;
+    const y2_0 = x2_0;
+    const otherCurve = u > 0 ? swN : swP;
+    const dt = 0.003;
+    const tMax = sys.complex ? 10 : 6;
+    const pts = [];
+    const viewScale = Math.max(Math.abs(vw.xmax), Math.abs(vw.ymax));
+    const thresh = viewScale * 0.012;
+    let hitIdxInCurve = null, hitT = null, hitIdxInPts = null;
+
+    if (sys.complex) {
+      const { C1, C2 } = fitComplex(sys, y1_0, y2_0);
+      for (let t = 0; t <= tMax; t += dt) {
+        const eat = Math.exp(sys.alpha * t);
+        if (!isFinite(eat) || eat > 1e8) break;
+        const c = Math.cos(sys.omega * t);
+        const s = Math.sin(sys.omega * t);
+        const y1 = eat * (C1 * c + C2 * s);
+        const y2 = eat * ((sys.alpha * C1 + sys.omega * C2) * c + (sys.alpha * C2 - sys.omega * C1) * s);
+        if (!isFinite(y1)) break;
+        if (Math.abs(y1 + rest) > Math.abs(vw.xmax) * 2.5 || Math.abs(y2) > Math.abs(vw.ymax) * 2.5) break;
+        const pt = [y1 + rest, y2];
+        pts.push(pt);
+        if (t > 0.02) {
+          const d = distToCurve(pt, otherCurve);
+          if (d.dist < thresh) {
+            hitIdxInCurve = d.idx;
+            hitT = t;
+            hitIdxInPts = pts.length - 1;
+            break;
+          }
+        }
+      }
+    } else {
+      const K = (sys.l2 * y1_0 - y2_0) / (sys.l2 - sys.l1);
+      const L = (y2_0 - sys.l1 * y1_0) / (sys.l2 - sys.l1);
+      for (let t = 0; t <= tMax; t += dt) {
+        const e1 = Math.exp(sys.l1 * t);
+        const e2 = Math.exp(sys.l2 * t);
+        const y1 = K * e1 + L * e2;
+        const y2 = sys.l1 * K * e1 + sys.l2 * L * e2;
+        if (!isFinite(y1)) break;
+        if (Math.abs(y1 + rest) > Math.abs(vw.xmax) * 2.5 || Math.abs(y2) > Math.abs(vw.ymax) * 2.5) break;
+        const pt = [y1 + rest, y2];
+        pts.push(pt);
+        if (t > 0.02) {
+          const d = distToCurve(pt, otherCurve);
+          if (d.dist < thresh) {
+            hitIdxInCurve = d.idx;
+            hitT = t;
+            hitIdxInPts = pts.length - 1;
+            break;
+          }
+        }
+      }
+    }
+    return { u, pts, hitIdxInCurve, hitT, hitIdxInPts, otherCurve };
+  }
+  const rP = tryU(1), rM = tryU(-1);
+  let opt = null;
+  if (rP.hitIdxInCurve !== null && rM.hitIdxInCurve !== null) opt = rP.hitT < rM.hitT ? rP : rM;
+  else if (rP.hitIdxInCurve !== null) opt = rP;
+  else if (rM.hitIdxInCurve !== null) opt = rM;
+  if (!opt) return { noControl: true };
+  const part1 = opt.pts.slice(0, opt.hitIdxInPts + 1);
+  const part2 = opt.otherCurve.slice(opt.hitIdxInCurve);
+  return { ok: true, u: opt.u, part1, part2 };
+}
+
+function niceStep(range) {
+  const raw = range / 10;
+  const pow = Math.pow(10, Math.floor(Math.log10(raw)));
+  const mant = raw / pow;
+  let nice;
+  if (mant < 1.5) nice = 1;
+  else if (mant < 3) nice = 2;
+  else if (mant < 7) nice = 5;
+  else nice = 10;
+  return nice * pow;
+}
+
+function draw() {
+  setupCanvas();
+  ctx.clearRect(0, 0, W, H);
+  const panel = document.getElementById('infoPanel');
+
+  if (!system || system.error) {
+    ctx.fillStyle = mutedCol;
+    ctx.font = '14px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText(system ? system.error : 'Enter valid a, b values', W/2, H/2);
+    if (system && system.error) {
+      panel.innerHTML = '<div class="info-item"><span class="info-label">Status</span><span class="badge badge-error">' + system.error + '</span></div>';
+    }
+    return;
+  }
+
+  const sys = system;
+  const vw = getView(sys);
+  let badgeClass;
+  if (sys.typeKey === 'stable') badgeClass = 'badge-stable';
+  else if (sys.typeKey === 'unstable') badgeClass = 'badge-unstable';
+  else if (sys.typeKey === 'saddle') badgeClass = 'badge-saddle';
+  else if (sys.typeKey === 'focus-stable') badgeClass = 'badge-focus-stable';
+  else if (sys.typeKey === 'focus-unstable') badgeClass = 'badge-focus-unstable';
+  else if (sys.typeKey === 'centre') badgeClass = 'badge-centre';
+  else badgeClass = 'badge-stable';
+
+  let stripFormula = '';
+  if (sys.typeKey === 'saddle') {
+    const s = sys.stable_l;
+    const rhs = Math.abs(s / sys.b);
+    const coef = -s;
+    const coefStr = coef === 1 ? '' : (coef === -1 ? '−' : (fmt(coef, 3) + '·'));
+    stripFormula = '|x\' ' + (coef >= 0 ? '+' : '') + ' ' + (coef === 1 ? '' : (coef === -1 ? '−' : fmt(coef, 3) + '·')) + 'x| ≤ ' + fmt(rhs, 3);
+    stripFormula = '|x\' + ' + coefStr + 'x| ≤ ' + fmt(rhs, 3);
+  }
+
+  if (sys.complex) {
+    const aStr = fmt(sys.alpha, 3);
+    const wStr = fmt(sys.omega, 3);
+    const eigStr = Math.abs(sys.alpha) < 0.001
+      ? `±${wStr}i (pure imaginary)`
+      : `${aStr} ± ${wStr}i`;
+    const period = 2 * Math.PI / sys.omega;
+    panel.innerHTML = `
+      <div class="info-item"><span class="info-label">Type</span><span class="info-value"><span class="badge ${badgeClass}">${sys.type}</span></span></div>
+      <div class="info-item"><span class="info-label">Eigenvalues λ</span><span class="info-value">${eigStr}</span></div>
+      <div class="info-item"><span class="info-label">Real part (growth)</span><span class="info-value">α = ${aStr}</span></div>
+      <div class="info-item"><span class="info-label">Imaginary part (rotation)</span><span class="info-value">ω = ${wStr}</span></div>
+      <div class="info-item"><span class="info-label">Period of rotation</span><span class="info-value">T = 2π/ω ≈ ${fmt(period, 3)}</span></div>
+      <div class="info-item"><span class="info-label">Rest points</span><span class="info-value">(${fmt(sys.rest_plus, 3)}, 0)  and  (${fmt(sys.rest_minus, 3)}, 0)</span></div>
+      <div class="info-item"><span class="info-label">Controllable region</span><span class="info-value">${sys.controllability}</span></div>
+    `;
+  } else {
+    panel.innerHTML = `
+      <div class="info-item"><span class="info-label">Type</span><span class="info-value"><span class="badge ${badgeClass}">${sys.type}</span></span></div>
+      <div class="info-item"><span class="info-label">Eigenvalues λ</span><span class="info-value">${fmt(sys.l1, 3)},   ${fmt(sys.l2, 3)}</span></div>
+      <div class="info-item"><span class="info-label">Eigenvector slopes</span><span class="info-value">${fmt(sys.l1, 3)} and ${fmt(sys.l2, 3)}</span></div>
+      <div class="info-item"><span class="info-label">Rest points</span><span class="info-value">(${fmt(sys.rest_plus, 3)}, 0)  and  (${fmt(sys.rest_minus, 3)}, 0)</span></div>
+      <div class="info-item"><span class="info-label">Co-state roots</span><span class="info-value">m = ${fmt(-sys.l1, 3)}, ${fmt(-sys.l2, 3)}</span></div>
+      <div class="info-item"><span class="info-label">Controllable region</span><span class="info-value">${sys.controllability}</span></div>
+      ${stripFormula ? '<div class="formula">' + stripFormula + '</div>' : ''}
+    `;
+  }
+
+  // Grid
+  ctx.strokeStyle = gridCol; ctx.lineWidth = 0.5;
+  const xStep = niceStep(vw.xmax - vw.xmin);
+  const yStep = niceStep(vw.ymax - vw.ymin);
+  for (let v = Math.ceil(vw.xmin/xStep)*xStep; v <= vw.xmax; v += xStep) {
+    const [sx] = toS(v, 0, vw);
+    ctx.beginPath(); ctx.moveTo(sx, 30); ctx.lineTo(sx, H-30); ctx.stroke();
+  }
+  for (let v = Math.ceil(vw.ymin/yStep)*yStep; v <= vw.ymax; v += yStep) {
+    const [,sy] = toS(0, v, vw);
+    ctx.beginPath(); ctx.moveTo(50, sy); ctx.lineTo(W-50, sy); ctx.stroke();
+  }
+
+  // Controllable region
+  if (document.getElementById('tRegion').checked) {
+    if (sys.typeKey === 'stable') {
+      const [tlx, tly] = toS(vw.xmin, vw.ymax, vw);
+      const [brx, bry] = toS(vw.xmax, vw.ymin, vw);
+      ctx.fillStyle = greenCol + '12';
+      ctx.fillRect(tlx, tly, brx - tlx, bry - tly);
+    } else if (sys.typeKey === 'focus-stable' || sys.typeKey === 'centre') {
+      // Illustrative backward-reachable-region shading. Oscillatory trajectories alone do not establish finite-time reachability to the origin.
+      const [tlx, tly] = toS(vw.xmin, vw.ymax, vw);
+      const [brx, bry] = toS(vw.xmax, vw.ymin, vw);
+      ctx.fillStyle = greenCol + '12';
+      ctx.fillRect(tlx, tly, brx - tlx, bry - tly);
+    } else if (sys.typeKey === 'saddle') {
+      const s = sys.stable_l;
+      const c = Math.abs(s / sys.b);
+      const xmn = vw.xmin - 0.5, xmx = vw.xmax + 0.5;
+      const [p1x, p1y] = toS(xmn, c + s*xmn, vw);
+      const [p2x, p2y] = toS(xmx, c + s*xmx, vw);
+      const [p3x, p3y] = toS(xmx, -c + s*xmx, vw);
+      const [p4x, p4y] = toS(xmn, -c + s*xmn, vw);
+      ctx.fillStyle = greenCol + '15';
+      ctx.beginPath();
+      ctx.moveTo(p1x, p1y); ctx.lineTo(p2x, p2y); ctx.lineTo(p3x, p3y); ctx.lineTo(p4x, p4y);
+      ctx.closePath(); ctx.fill();
+      ctx.strokeStyle = greenCol + '88';
+      ctx.lineWidth = 1.2;
+      ctx.setLineDash([6, 4]);
+      ctx.beginPath(); ctx.moveTo(p1x, p1y); ctx.lineTo(p2x, p2y); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(p3x, p3y); ctx.lineTo(p4x, p4y); ctx.stroke();
+      ctx.setLineDash([]);
+    } else if (sys.typeKey === 'focus-unstable') {
+      // Unstable focus: bounded lens-like region defined by switching curves
+      const tMinSp = -2 * Math.PI / sys.omega;
+      const swP2 = switchCurve(sys, 1, tMinSp);
+      const swN2 = switchCurve(sys, -1, tMinSp);
+      ctx.fillStyle = greenCol + '18';
+      ctx.beginPath();
+      for (let i = 0; i < swP2.length; i++) {
+        const [sx, sy] = toS(swP2[i][0], swP2[i][1], vw);
+        if (i === 0) ctx.moveTo(sx, sy); else ctx.lineTo(sx, sy);
+      }
+      for (let i = swN2.length - 1; i >= 0; i--) {
+        const [sx, sy] = toS(swN2[i][0], swN2[i][1], vw);
+        ctx.lineTo(sx, sy);
+      }
+      ctx.closePath(); ctx.fill();
+    } else {
+      const swP2 = switchCurve(sys, 1, -5);
+      const swN2 = switchCurve(sys, -1, -5);
+      ctx.fillStyle = greenCol + '18';
+      ctx.beginPath();
+      for (let i = 0; i < swP2.length; i++) {
+        const [sx, sy] = toS(swP2[i][0], swP2[i][1], vw);
+        if (i === 0) ctx.moveTo(sx, sy); else ctx.lineTo(sx, sy);
+      }
+      for (let i = swN2.length - 1; i >= 0; i--) {
+        const [sx, sy] = toS(swN2[i][0], swN2[i][1], vw);
+        ctx.lineTo(sx, sy);
+      }
+      ctx.closePath(); ctx.fill();
+    }
+  }
+
+  // Axes
+  ctx.strokeStyle = axisCol; ctx.lineWidth = 1.2;
+  const [ox, oy] = toS(0, 0, vw);
+  ctx.beginPath(); ctx.moveTo(50, oy); ctx.lineTo(W-50, oy); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(ox, 30); ctx.lineTo(ox, H-30); ctx.stroke();
+  ctx.fillStyle = textCol;
+  ctx.font = '13px sans-serif';
+  ctx.textAlign = 'center';
+  ctx.fillText('x', W - 34, oy + 16);
+  ctx.fillText("x'", ox + 16, 26);
+
+  // Tick labels
+  ctx.font = '10px sans-serif';
+  ctx.fillStyle = mutedCol;
+  for (let v = Math.ceil(vw.xmin/xStep)*xStep; v <= vw.xmax; v += xStep) {
+    if (Math.abs(v) < 1e-9) continue;
+    const [sx] = toS(v, 0, vw);
+    ctx.textAlign = 'center';
+    ctx.fillText(fmt(v, 2), sx, oy + 12);
+  }
+  for (let v = Math.ceil(vw.ymin/yStep)*yStep; v <= vw.ymax; v += yStep) {
+    if (Math.abs(v) < 1e-9) continue;
+    const [,sy] = toS(0, v, vw);
+    ctx.textAlign = 'right';
+    ctx.fillText(fmt(v, 2), ox - 4, sy + 3);
+  }
+
+  // Eigenvector lines (only for real eigenvalues)
+  if (document.getElementById('tEig').checked && !sys.complex) {
+    for (const rx of [sys.rest_plus, sys.rest_minus]) {
+      for (const slope of [sys.l1, sys.l2]) {
+        const pts = [];
+        const dx = (vw.xmax - vw.xmin) / 400;
+        for (let x = vw.xmin - 0.1; x <= vw.xmax + 0.1; x += dx) {
+          pts.push([x, slope * (x - rx)]);
+        }
+        drawPath(pts, eigCol, 1, [5, 4], vw);
+      }
+    }
+  }
+
+  // Trajectory families
+  if (document.getElementById('tTraj').checked) {
+    const scale = Math.abs(sys.rest_plus);
+    if (sys.complex) {
+      // Draw spirals/ellipses from a ring of initial conditions around each rest point
+      const numTraj = 8;
+      let tMin, tMax;
+      if (sys.typeKey === 'centre') { tMin = 0; tMax = 2 * Math.PI / sys.omega; }
+      else if (sys.typeKey === 'focus-stable') { tMin = -0.3; tMax = 6 / Math.max(Math.abs(sys.alpha), 0.1); }
+      else { tMin = -6 / Math.max(Math.abs(sys.alpha), 0.1); tMax = 0.3; }
+
+      const radii = [0.5, 1.0, 1.8];
+      for (const r of radii) {
+        for (let k = 0; k < numTraj; k++) {
+          const theta = 2 * Math.PI * k / numTraj;
+          // Red trajectories (u = +1), shifted from origin (rest_plus, 0)
+          // Initial condition: y1 = r*scale*cos(theta), y2 = r*scale*sin(theta)*omega (scale to match y2 units)
+          const y1_0 = r * scale * Math.cos(theta);
+          const y2_0 = r * scale * sys.omega * Math.sin(theta);
+          const fitR = fitComplex(sys, y1_0, y2_0);
+          const pR = trajComplex(sys, 1, fitR.C1, fitR.C2, tMin, tMax, 0.01);
+          drawPath(pR, redCol + '44', 0.8, null, vw);
+          if (document.getElementById('tArrows').checked && pR.length > 30) {
+            drawArrow(pR, 0.5, redCol + '77', vw);
+          }
+          // Blue trajectories (u = -1)
+          const fitB = fitComplex(sys, y1_0, y2_0);
+          const pB = trajComplex(sys, -1, fitB.C1, fitB.C2, tMin, tMax, 0.01);
+          drawPath(pB, blueCol + '44', 0.8, null, vw);
+          if (document.getElementById('tArrows').checked && pB.length > 30) {
+            drawArrow(pB, 0.5, blueCol + '77', vw);
+          }
+        }
+      }
+    } else {
+      const cfgs = [];
+      const mags = [0.3, 0.7, 1.3, 2.2];
+      for (const m of mags) {
+        cfgs.push({K: m*scale, L: -m*scale*0.4});
+        cfgs.push({K: -m*scale, L: m*scale*0.4});
+        cfgs.push({K: m*scale*0.4, L: -m*scale});
+        cfgs.push({K: -m*scale*0.4, L: m*scale});
+        cfgs.push({K: m*scale*0.8, L: m*scale*0.4});
+        cfgs.push({K: -m*scale*0.8, L: -m*scale*0.4});
+      }
+      let tMin = -3, tMax = 3;
+      if (sys.typeKey === 'stable') { tMin = -0.5; tMax = 5; }
+      else if (sys.typeKey === 'unstable') { tMin = -5; tMax = 0.5; }
+      else { tMin = -2.5; tMax = 2.5; }
+      for (const {K, L} of cfgs) {
+        const pR = trajKL(sys, 1, K, L, tMin, tMax, 0.008);
+        drawPath(pR, redCol + '44', 0.8, null, vw);
+        if (document.getElementById('tArrows').checked && pR.length > 30) {
+          const midFrac = sys.typeKey === 'stable' ? 0.6 : (sys.typeKey === 'unstable' ? 0.4 : 0.5);
+          drawArrow(pR, midFrac, redCol + '77', vw);
+        }
+        const pB = trajKL(sys, -1, -K, -L, tMin, tMax, 0.008);
+        drawPath(pB, blueCol + '44', 0.8, null, vw);
+        if (document.getElementById('tArrows').checked && pB.length > 30) {
+          const midFrac = sys.typeKey === 'stable' ? 0.6 : (sys.typeKey === 'unstable' ? 0.4 : 0.5);
+          drawArrow(pB, midFrac, blueCol + '77', vw);
+        }
+      }
+    }
+  }
+
+  // Switching curve
+  if (document.getElementById('tSwitch').checked) {
+    let tMin;
+    if (sys.complex) {
+      // For spirals, we want a full rotation or more
+      tMin = sys.typeKey === 'focus-stable' ? -2 * Math.PI / sys.omega : (sys.typeKey === 'focus-unstable' ? -2 * Math.PI / sys.omega : -2 * Math.PI / sys.omega);
+    } else {
+      tMin = sys.typeKey === 'stable' ? -1.5 : (sys.typeKey === 'unstable' ? -6 : -4);
+    }
+    const swP = switchCurve(sys, 1, tMin);
+    drawPath(swP, greenCol, 3, null, vw);
+    if (document.getElementById('tArrows').checked) drawArrow(swP, 0.9, greenCol, vw);
+    const swN = switchCurve(sys, -1, tMin);
+    drawPath(swN, greenCol, 3, null, vw);
+    if (document.getElementById('tArrows').checked) drawArrow(swN, 0.9, greenCol, vw);
+  }
+
+  // Rest points
+  for (const [rx, col, lbl, align] of [
+    [sys.rest_plus, redCol, '(' + fmt(sys.rest_plus, 3) + ', 0)', sys.rest_plus > 0 ? 'left' : 'right'],
+    [sys.rest_minus, blueCol, '(' + fmt(sys.rest_minus, 3) + ', 0)', sys.rest_minus > 0 ? 'left' : 'right']
+  ]) {
+    const [sx, sy] = toS(rx, 0, vw);
+    ctx.beginPath(); ctx.arc(sx, sy, 5, 0, 2*Math.PI);
+    ctx.fillStyle = col; ctx.fill();
+    ctx.strokeStyle = dark ? '#222' : '#fff'; ctx.lineWidth = 1.5; ctx.stroke();
+    if (document.getElementById('tLabels').checked) {
+      ctx.fillStyle = textCol;
+      ctx.font = '11px sans-serif';
+      ctx.textAlign = align;
+      ctx.fillText(lbl, sx + (align === 'left' ? 8 : -8), sy - 8);
+    }
+  }
+  const [osx, osy] = toS(0, 0, vw);
+  ctx.beginPath(); ctx.arc(osx, osy, 3.5, 0, 2*Math.PI);
+  ctx.fillStyle = textCol; ctx.fill();
+  if (document.getElementById('tLabels').checked) {
+    ctx.fillStyle = textCol;
+    ctx.font = '11px sans-serif';
+    ctx.textAlign = 'left';
+    ctx.fillText('origin', osx + 8, osy + 14);
+  }
+
+  // Click trajectory
+  if (clicked) {
+    const result = simulateFromClick(sys, clicked[0], clicked[1], vw);
+    const [cx, cy] = toS(clicked[0], clicked[1], vw);
+    ctx.beginPath(); ctx.arc(cx, cy, 6, 0, 2*Math.PI);
+    ctx.fillStyle = purpleCol; ctx.fill();
+    ctx.strokeStyle = dark ? '#222' : '#fff'; ctx.lineWidth = 2; ctx.stroke();
+    if (result.ok) {
+      drawPath(result.part1, purpleCol, 2.5, null, vw);
+      drawPath(result.part2, purpleCol, 2.5, [6, 3], vw);
+      if (document.getElementById('tArrows').checked) {
+        if (result.part1.length > 10) drawArrow(result.part1, 0.5, purpleCol, vw);
+        if (result.part2.length > 10) drawArrow(result.part2, 0.5, purpleCol, vw);
+      }
+      ctx.fillStyle = purpleCol;
+      ctx.font = 'bold 12px sans-serif';
+      ctx.textAlign = 'left';
+      ctx.fillText('Initial u = ' + (result.u > 0 ? '+1' : '−1'), cx + 12, cy - 4);
+    } else {
+      ctx.fillStyle = '#E24B4A';
+      ctx.font = 'bold 12px sans-serif';
+      ctx.textAlign = 'left';
+      ctx.fillText('No path found within search window', cx + 12, cy - 4);
+    }
+  }
+}
+
+function update() {
+  const a = parseFloat(document.getElementById('inA').value);
+  const b = parseFloat(document.getElementById('inB').value);
+  document.getElementById('eqA').textContent = a >= 0 ? a : ('−' + Math.abs(a));
+  document.getElementById('eqB').textContent = b >= 0 ? b : ('−' + Math.abs(b));
+  system = computeSystem(a, b);
+  clicked = null;
+  draw();
+}
+
+function loadPreset(a, b, btn) {
+  document.getElementById('inA').value = a;
+  document.getElementById('inB').value = b;
+  document.querySelectorAll('.preset-btn').forEach(el => el.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+  update();
+}
+
+document.getElementById('inA').addEventListener('input', () => {
+  document.querySelectorAll('.preset-btn').forEach(b => b.classList.remove('active'));
+  update();
+});
+document.getElementById('inB').addEventListener('input', () => {
+  document.querySelectorAll('.preset-btn').forEach(b => b.classList.remove('active'));
+  update();
+});
+
+canvas.addEventListener('click', (e) => {
+  if (!system || system.error) return;
+  const rect = canvas.getBoundingClientRect();
+  const sx = (e.clientX - rect.left) * (W / rect.width);
+  const sy = (e.clientY - rect.top) * (H / rect.height);
+  const vw = getView(system);
+  clicked = fromS(sx, sy, vw);
+  draw();
+});
+
+window.addEventListener('resize', () => { if (system) draw(); });
+
+update();
+</script>
+</body>
+</html>
